@@ -11,19 +11,21 @@ class WURFL
     end
   end
 
-  def initialize( filename = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz' )
+  def clear!
+    @devices = Hash.new
+    @devices_by_id = {}
+  end
 
-    file = open( filename ) 
-    stream = begin
-               Zlib::GzipReader.new( file )
-             rescue Zlib::GzipFile::Error
-               file
-             end
-    data = stream.read
+  def process_xml!( filename )
+    data = open( filename ).read
+    begin # Try decompress it, in case it's a compressed file
+      # XXX Yes, this does seem ugly, but is there another way?
+      data = Zlib::GzipReader.new(StringIO.new(data.to_s)).read
+    rescue Zlib::GzipFile::Error
+    end
     doc = Hpricot( data )
 
-    @devices = Hash.new
-    devices_by_id = {}
+    keys_added = []
 
     (doc/'devices'/'device').each do |device_element|
       device = Hash.new
@@ -42,14 +44,21 @@ class WURFL
         device[ name ] = value
       end
 
+      keys_added << device[ :user_agent ]
       @devices[ device[ :user_agent ] ] = device
-      devices_by_id[ device[ :id ] ] = device
+      @devices_by_id[ device[ :id ] ] = device
     end
 
-    @devices.keys.each do |key|
-      @devices[ key ][ :fall_back ] = devices_by_id[ @devices[ key ][ :fall_back ] ]
+    keys_added.each do |key|
+      @devices[ key ][ :fall_back ] = @devices_by_id[ @devices[ key ][ :fall_back ] ]
     end
 
+  end
+
+  def initialize( filename = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz' )
+    clear!
+    process_xml!( filename )
+    process_xml!( 'http://wurfl.sourceforge.net/web_browsers_patch.xml' )
   end
 
   def []( user_agent )
