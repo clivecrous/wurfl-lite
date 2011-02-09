@@ -7,7 +7,7 @@ class WURFL
 
   class Hash < ::Hash
     def method_missing( method )
-      has_key?( method ) ? self[ method ] : nil
+      has_key?( method ) ? self[ method ] : ( has_key?( :fall_back ) ? self[ :fall_back ].send( method ) : nil )
     end
   end
 
