@@ -9,6 +9,7 @@ class WURFL
   BROWSER_PATCH = 'http://wurfl.sourceforge.net/web_browsers_patch.xml'
 
   attr_accessor :insertion, :substitution, :deletion
+  attr_accessor :match_threshold
 
   def initialize( filenames = [ LATEST, BROWSER_PATCH ] )
     clear!
@@ -18,6 +19,7 @@ class WURFL
     @insertion = 2
     @substitution = 1
     @deletion = 1.5
+    @match_threshold = 0.15
   end
 
   class Hash < ::Hash
@@ -29,9 +31,19 @@ class WURFL
   def clear!
     @devices = Hash.new
     @devices_by_id = {}
+    @files = []
+  end
+
+  def reset!
+    files = @files
+    clear!
+    files.each do |filename|
+      process_xml!( filename )
+    end
   end
 
   def process_xml!( filename )
+    @files << filename
     data = open( filename ).read
     begin # Try decompress it, in case it's a compressed file
       # XXX Yes, this does seem ugly, but is there another way?
@@ -73,7 +85,7 @@ class WURFL
   def []( user_agent )
     device = @devices[ user_agent ]
     if device
-      device[ :wurfl_match_distance ] = 0
+      device[ :wurfl_match ] = { :distance => 0, :distance_normalized => 0 }
       return device
     end
     match = Amatch::Sellers.new( user_agent )
@@ -85,8 +97,18 @@ class WURFL
     sorted_list = keys.zip( distances ).sort{|a,b|a.last<=>b.last}
     use_key = sorted_list.first.first
     device = @devices[ use_key ]
-    device[ :wurfl_match_distance ] = sorted_list.first.last
-    @devices[ user_agent ] = device
+    distance = sorted_list.first.last
+    distance_normalised = distance/(user_agent.length+1)
+
+    if distance_normalised > @match_threshold
+      nil
+    else
+      device[ :wurfl_match ] = {
+        :distance => distance,
+        :distance_normalised => distance_normalised
+      }
+      @devices[ user_agent ] = device
+    end
   end
 
 end
