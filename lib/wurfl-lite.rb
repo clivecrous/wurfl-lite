@@ -5,6 +5,17 @@ require 'amatch'
 
 class WURFL
 
+  attr_accessor :insertion, :substitution, :deletion
+
+  def initialize( filename = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz' )
+    clear!
+    process_xml!( filename )
+    process_xml!( 'http://wurfl.sourceforge.net/web_browsers_patch.xml' )
+    @insertion = 2
+    @substitution = 1
+    @deletion = 1.5
+  end
+
   class Hash < ::Hash
     def method_missing( method )
       has_key?( method ) ? self[ method ] : ( self[ :fall_back ] ? self[ :fall_back ].send( method ) : nil )
@@ -55,20 +66,23 @@ class WURFL
 
   end
 
-  def initialize( filename = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz' )
-    clear!
-    process_xml!( filename )
-    process_xml!( 'http://wurfl.sourceforge.net/web_browsers_patch.xml' )
-  end
-
   def []( user_agent )
     device = @devices[ user_agent ]
-    return device if device
+    if device
+      device[ :wurfl_match_distance ] = 0
+      return device
+    end
     match = Amatch::Sellers.new( user_agent )
+    match.insertion = @insertion
+    match.substitution = @substitution
+    match.deletion = @deletion
     keys = @devices.keys
     distances = match.match( keys )
-    use_key = keys.zip( distances ).sort{|a,b|a.last<=>b.last}.first.first
-    @devices[ user_agent ] = @devices[ use_key ]
+    sorted_list = keys.zip( distances ).sort{|a,b|a.last<=>b.last}
+    use_key = sorted_list.first.first
+    device = @devices[ use_key ]
+    device[ :wurfl_match_distance ] = sorted_list.first.last
+    @devices[ user_agent ] = device
   end
 
 end
