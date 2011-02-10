@@ -5,12 +5,16 @@ require 'amatch'
 
 class WURFL
 
+  LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz'
+  BROWSER_PATCH = 'http://wurfl.sourceforge.net/web_browsers_patch.xml'
+
   attr_accessor :insertion, :substitution, :deletion
 
-  def initialize( filename = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz' )
+  def initialize( filenames = [ LATEST, BROWSER_PATCH ] )
     clear!
-    process_xml!( filename )
-    process_xml!( 'http://wurfl.sourceforge.net/web_browsers_patch.xml' )
+    [filenames].flatten.each do |filename|
+      process_xml!( filename )
+    end
     @insertion = 2
     @substitution = 1
     @deletion = 1.5
