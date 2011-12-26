@@ -5,9 +5,8 @@ require 'amatch'
 
 class WURFL
 
-  LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.2/wurfl-2.2.xml.gz'
-  #LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/latest/wurfl-latest.xml.gz'
-  BROWSER_PATCH = 'http://wurfl.sourceforge.net/web_browsers_patch.xml'
+  LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.3/wurfl-2.3.xml.gz'
+  BROWSER_PATCH = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.3/web_browsers_patch.xml'
 
   attr_accessor :insertion, :substitution, :deletion
   attr_accessor :match_threshold
