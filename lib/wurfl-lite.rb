@@ -30,6 +30,7 @@ class WURFL
 
   def clear!
     @devices = Hash.new
+    @devices_cached = Hash.new
     @devices_by_id = {}
     @files = []
   end
@@ -83,9 +84,13 @@ class WURFL
   end
 
   def []( user_agent )
+    if @devices_cached.has_key?( user_agent )
+      return @devices_cached[ user_agent ]
+    end
     device = @devices[ user_agent ]
     if device
       device[ :wurfl_match ] = { :distance => 0, :distance_normalized => 0 }
+      @devices_cached[ user_agent ] = device
       return device
     end
     match = Amatch::Sellers.new( user_agent )
@@ -100,15 +105,16 @@ class WURFL
     distance = sorted_list.first.last
     distance_normalised = distance/(user_agent.length+1)
 
-    if distance_normalised > @match_threshold
-      nil
-    else
-      device[ :wurfl_match ] = {
-        :distance => distance,
-        :distance_normalised => distance_normalised
-      }
-      @devices[ user_agent ] = device
-    end
+    @devices_cached[ user_agent ] =
+      if distance_normalised > @match_threshold
+        nil
+      else
+        device[ :wurfl_match ] = {
+          :distance => distance,
+          :distance_normalised => distance_normalised
+        }
+        @devices[ user_agent ] = device
+      end
   end
 
 end
