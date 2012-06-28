@@ -5,7 +5,7 @@ require 'amatch'
 
 class WURFL
 
-  LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.3/wurfl-2.3.xml.gz'
+  LATEST = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.3.1/wurfl-2.3.1.xml.gz'
   BROWSER_PATCH = 'http://downloads.sourceforge.net/project/wurfl/WURFL/2.3/web_browsers_patch.xml'
 
   attr_accessor :insertion, :substitution, :deletion
@@ -84,6 +84,8 @@ class WURFL
   end
 
   def []( user_agent )
+    return if !user_agent
+
     if @devices_cached.has_key?( user_agent )
       return @devices_cached[ user_agent ]
     end
