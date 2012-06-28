@@ -84,6 +84,8 @@ class WURFL
   end
 
   def []( user_agent )
+    return if !user_agent
+
     if @devices_cached.has_key?( user_agent )
       return @devices_cached[ user_agent ]
     end
