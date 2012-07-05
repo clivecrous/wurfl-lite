@@ -1,6 +1,6 @@
 require 'open-uri'
 require 'zlib'
-require 'hpricot'
+require 'nokogiri'
 require 'amatch'
 
 class WURFL
@@ -51,18 +51,18 @@ class WURFL
       data = Zlib::GzipReader.new(StringIO.new(data.to_s)).read
     rescue Zlib::GzipFile::Error
     end
-    doc = Hpricot( data )
+    doc = Nokogiri::XML( data )
 
     keys_added = []
 
-    (doc/'devices'/'device').each do |device_element|
+    doc.xpath("//devices/device").each do |device_element|
       device = Hash.new
       %w|id user_agent fall_back|.each do |attribute|
-        device[ attribute.to_sym ] = device_element.attributes[ attribute ]
+        device[ attribute.to_sym ] = device_element[ attribute ].to_s
       end
-      (device_element/'capability').each do |capability|
-        name = capability.attributes[ 'name' ].to_sym
-        value = capability.attributes[ 'value' ]
+      device_element.xpath("*/capability").each do |capability|
+        name = capability[ 'name' ].to_sym
+        value = capability[ 'value' ].to_s
         next if value.empty?
         if value.to_i.to_s == value.strip
           value = value.to_i
@@ -76,11 +76,11 @@ class WURFL
       @devices[ device[ :user_agent ] ] = device
       @devices_by_id[ device[ :id ] ] = device
     end
-
+    
     keys_added.each do |key|
       @devices[ key ][ :fall_back ] = @devices_by_id[ @devices[ key ][ :fall_back ] ]
     end
-
+    
   end
 
   def []( user_agent )

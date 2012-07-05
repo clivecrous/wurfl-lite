@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{Simple Ruby usage of the WURFL device capabilities and features database}
   s.description = %q{Simple Ruby usage of the WURFL device capabilities and features database}
 
-  s.add_dependency "hpricot", ">= 0.8.2", "!= 0.8.3"
+  s.add_dependency "nokogiri"
   s.add_dependency "amatch", ">= 0.2.5"
 
   s.add_development_dependency "bundler", ">= 1.0.0"
